@@ -86,6 +86,18 @@ class Processor:
                                                      self.tweets_df['gt_latitude'],
                                                      self.tweets_df['bbox_latitude'])
 
+    def add_coordinate_counts(self):
+        """
+            FOR INTERNAL USE
+            Returns a nx4 dataframe with columns longitude, latitude, label
+            and counts for plotting
+            Here 'counts' is the number of times those coordinates appear in the sample
+            Returns:
+                augmented dataframe (pandas.DataFrame)
+
+        """
+        self.tweets_df['counts'] = self.tweets_df.groupby('longitude_to_use')['longitude_to_use'].transform('count')
+
     def extract_features(self):
         self.filter_geo()
         self.extract_coords()
