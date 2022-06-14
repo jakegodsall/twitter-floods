@@ -47,11 +47,39 @@ class Processor:
         # concatenate the new df to the original df
         self.tweets_df = pd.concat([self.tweets_df, lonlat], axis=1)
 
+    def _get_centre(self, row):
+        """
+            Calculates and returns the central coordinate for the bounding
+            box
+
+            Args:
+                param1: row of the dataframe
+
+            Returns:
+                central coordinates (list)
+
+        """
+        return [(row[0] + row[2]) / 2, (row[1] + row[3]) / 2]
+
+    def extract_bbox(self):
+        places_df = self.places_df[['id', 'geo']]
+        places_df = pd.concat([places_df, places_df.geo.apply(lambda s: pd.Series(s))['bbox']], axis=1)
+        places_df = places_df.drop('geo', axis=1)
+        self.tweets_df = pd.merge(self.tweets_df, places_df,
+                                  left_on='place_id',
+                                  right_on='id')
+        self.tweets_df['bbox_centre'] = self.tweets_df.bbox.apply(self._get_centre)
+        self.tweets_df['bbox_longitude'] = self.tweets_df.bbox_centre.apply(lambda s: s[0])
+        self.tweets_df['bbox_latitude'] = self.tweets_df.bbox_centre.apply(lambda s: s[1])
+
     def extract_features(self):
         self.filter_geo()
         self.extract_coords()
+        self.extract_bbox()
 
         return self.tweets_df
+
+
 
     def create_temporal(self):
         ...
