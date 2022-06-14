@@ -72,14 +72,27 @@ class Processor:
         self.tweets_df['bbox_longitude'] = self.tweets_df.bbox_centre.apply(lambda s: s[0])
         self.tweets_df['bbox_latitude'] = self.tweets_df.bbox_centre.apply(lambda s: s[1])
 
+    def determine_coords_to_use(self):
+        """
+            Determines which coordinates to use from the original coordinates
+            and those generated from the bounding box of the places.jsonl file.
+
+        """
+        self.tweets_df['has_coords'] = self.tweets_df.coordinates.notnull()
+        self.tweets_df['longitude_to_use'] = np.where(self.tweets_df['has_coords'],
+                                                      self.tweets_df['gt_longitude'],
+                                                      self.tweets_df['bbox_longitude'])
+        self.tweets_df['latitude_to_use'] = np.where(self.tweets_df['has_coords'],
+                                                     self.tweets_df['gt_latitude'],
+                                                     self.tweets_df['bbox_latitude'])
+
     def extract_features(self):
         self.filter_geo()
         self.extract_coords()
         self.extract_bbox()
+        self.determine_coords_to_use()
 
         return self.tweets_df
-
-
 
     def create_temporal(self):
         ...
