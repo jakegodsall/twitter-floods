@@ -1,4 +1,5 @@
-from twitter_utils.twitter_utils import Loader, Processor
+from twitter_utils.twitter_utils import Loader, Processor, StaticPlotter
+
 
 def main():
     tweets = '/Users/jakegodsall/Google Drive/My Drive/Dev/twitter-floods/data/StormFranklin/tweets-labelled.jsonl'
@@ -19,6 +20,12 @@ def main():
     by_date = processor.create_temporal()
 
     print(by_date.keys())
+
+    splot = StaticPlotter(df)
+
+    basemap_plots = splot.plot_basemap()
+
+    print(basemap_plots)
 
 
 if __name__ == "__main__":
