@@ -103,11 +103,16 @@ class Processor:
         self.extract_coords()
         self.extract_bbox()
         self.determine_coords_to_use()
+        self.add_coordinate_counts()
 
-        return self.tweets_df
+        return self.tweets_df.loc[:, ['created_at', 'label',
+                                      'longitude_to_use',
+                                      'latitude_to_use',
+                                      'counts']]
 
     def create_temporal(self):
         ...
+
 
 class StaticPlotter:
     def __init__(self):
