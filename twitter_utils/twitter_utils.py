@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import datetime
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
+
 
 class Loader:
     def __init__(self, tweet_dir, places_dir):
@@ -130,16 +133,82 @@ class Processor:
         return df_by_date
 
 
-
 class StaticPlotter:
-    def __init__(self):
-        ...
+    def __init__(self, df):
+        self.df = df
 
     def show_options(self):
         ...
 
-    def plot_basemap(self):
-        ...
+    def plot_basemap(self, region='UK', size=10):
+
+        # creating a list of options for plots
+        plot_types = ["both", "positive", "negative"]
+        point_types = ["normal", "density"]
+        options = []
+
+        for i in plot_types:
+            for j in point_types:
+                options.append([i, j])
+
+        # creating a dictionary for storing plots
+        plots = {}
+
+        # iterating through options
+        for option in options:
+            which, density = option
+
+            fig, ax = plt.subplots(figsize=(8, 8))
+
+            bbox = [0, 0, 0, 0]
+            if region == 'UK':
+                loc = 'upper right'
+                bbox = [-10.5, 49.5, 3.5, 59.5, 4.36, 54.7]
+            elif region == 'Australia':
+                loc = 'lower left'
+                bbox = [100.338953078, -43.6345972634, 153.569469029, -2.6681857235, 133.8807, -26.6980]
+
+            m = Basemap(llcrnrlon=bbox[0], llcrnrlat=bbox[1], urcrnrlon=bbox[2], urcrnrlat=bbox[3],
+                        resolution='i', projection='tmerc', lon_0=bbox[4], lat_0=bbox[5], ax=ax)
+            m.drawlsmask(land_color='#00883D', ocean_color='#23C7CD', lakes=True)
+            m.drawcoastlines(color='#012C00')
+            m.drawcountries(color='white')
+
+            positive = self.df[self.df.label == 'positive']
+            negative = self.df[self.df.label == 'negative']
+
+            s = [size, size]
+            if density == 'density':
+                s = [negative.counts, positive.counts] * size
+
+            if which == 'both':
+                if density == 'density':
+                    s = [self.df.counts * size]
+                colours = self.df.label.astype('category').cat.codes
+                scatter = m.scatter(self.df.longitude_to_use, self.df.latitude_to_use,
+                                    latlon=True, alpha=1, s=s[0],
+                                    c=colours)
+                handles, labels = scatter.legend_elements()
+
+                plt.legend(handles=scatter.legend_elements()[0], title='Sentiment',
+                           labels=['Negative', 'Positive'])
+
+            elif which == 'positive':
+                pos_plot = m.scatter(positive.longitude_to_use, positive.latitude_to_use,
+                                     latlon=True, alpha=1, s=s[1],
+                                     c='#fde724', label='Positive')
+                ax.legend(loc=loc, title='Sentiment')
+            elif which == 'negative':
+                neg_plot = m.scatter(negative.longitude_to_use, negative.latitude_to_use,
+                                     latlon=True, alpha=1, s=s[0],
+                                     c='#440154', label='Negative')
+                ax.legend(loc=loc, title='Sentiment')
+
+            plots[f'{which}_{density}'] = fig
+
+        return plots
+
+
 
 
 
