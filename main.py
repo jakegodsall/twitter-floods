@@ -16,6 +16,10 @@ def main():
 
     print(df.columns)
 
+    by_date = processor.create_temporal()
+
+    print(by_date.keys())
+
 
 if __name__ == "__main__":
     main()

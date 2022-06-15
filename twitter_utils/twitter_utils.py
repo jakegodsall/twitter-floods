@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import datetime
 
 
 class Loader:
@@ -111,7 +112,23 @@ class Processor:
                                       'counts']]
 
     def create_temporal(self):
-        ...
+
+        df = self.tweets_df.copy(deep=True)
+
+        end_date = df.created_at.max()
+        start_date = df.created_at.min()
+
+        days = [(start_date.date() + datetime.timedelta(day)).isoformat()
+                for day in range((end_date.date() - start_date.date()).days + 1)]
+
+        df['created_at'] = df['created_at'].apply(lambda date: date.date().isoformat())
+        df_by_date = {}
+
+        for day in days:
+            df_by_date[day] = df[df.created_at == day]
+
+        return df_by_date
+
 
 
 class StaticPlotter:
