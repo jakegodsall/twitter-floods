@@ -134,29 +134,22 @@ class Processor:
 
 
 class StaticPlotter:
-    def __init__(self, df):
-        self.df = df
+    def __init__(self):
+        pass
 
     def show_options(self):
         ...
 
-    def plot_basemap(self, region='UK', size=10):
+    def plot_basemap(self, df, region='UK', size=10):
 
         # creating a list of options for plots
-        plot_types = ["both", "positive", "negative"]
-        point_types = ["normal", "density"]
-        options = []
-
-        for i in plot_types:
-            for j in point_types:
-                options.append([i, j])
+        density = ["normal", "density"]
 
         # creating a dictionary for storing plots
         plots = {}
 
         # iterating through options
-        for option in options:
-            which, density = option
+        for option in density:
 
             fig, ax = plt.subplots(figsize=(8, 8))
 
@@ -174,42 +167,51 @@ class StaticPlotter:
             m.drawcoastlines(color='#012C00')
             m.drawcountries(color='white')
 
-            positive = self.df[self.df.label == 'positive']
-            negative = self.df[self.df.label == 'negative']
-
             s = [size, size]
-            if density == 'density':
-                s = [negative.counts, positive.counts] * size
 
-            if which == 'both':
-                if density == 'density':
-                    s = [self.df.counts * size]
-                colours = self.df.label.astype('category').cat.codes
-                scatter = m.scatter(self.df.longitude_to_use, self.df.latitude_to_use,
-                                    latlon=True, alpha=1, s=s[0],
-                                    c=colours)
-                handles, labels = scatter.legend_elements()
+            if option == 'density':
+                s = [2 * df.counts * size]
 
-                plt.legend(handles=scatter.legend_elements()[0], title='Sentiment',
-                           labels=['Negative', 'Positive'])
+            colours = df.label.astype('category').cat.codes
+            scatter = m.scatter(df.longitude_to_use, df.latitude_to_use,
+                                latlon=True, alpha=1, s=s[0], c=colours)
 
-            elif which == 'positive':
-                pos_plot = m.scatter(positive.longitude_to_use, positive.latitude_to_use,
-                                     latlon=True, alpha=1, s=s[1],
-                                     c='#fde724', label='Positive')
-                ax.legend(loc=loc, title='Sentiment')
-            elif which == 'negative':
-                neg_plot = m.scatter(negative.longitude_to_use, negative.latitude_to_use,
-                                     latlon=True, alpha=1, s=s[0],
-                                     c='#440154', label='Negative')
-                ax.legend(loc=loc, title='Sentiment')
+            plt.legend(handles=scatter.legend_elements()[0], title='Sentiment', labels=['Negative', 'Positive'])
 
-            plots[f'{which}_{density}'] = fig
+            plots[f'{option}'] = fig
 
         return plots
 
 
+class TemporalPlotter(StaticPlotter):
+    def __init__(self):
+        pass
+
+    def temporal_plotter(self, df_by_day):
+        temporal_basemaps = {}
+        for k, v in df_by_day.items():
+            if v.shape[0] > 0:
+                temporal_basemaps[k] = self.plot_basemap(v)
+        return temporal_basemaps
+
+    def change_structure(self, plots_by_day):
+        k = list(plots_by_day.values())[0].keys()
+        return {inner: {outer: plots_by_day[outer][inner] for outer in plots_by_day} for inner in k}
 
 
+class Saver:
+    def __init__(self, plots_dir):
+        self.plots_dir = Path(plots_dir)
+        self.event_dir = None
 
+    def create_event_directory(self, event_name):
+        (self.plots_dir / event_name).mkdir(exist_ok=True)
+        self.event_dir = self.plots_dir / event_name
+        print(self.event_dir)
 
+    def save_all_plots(self, plots):
+        for plot_type, dates in plots.items():
+            (self.event_dir / plot_type).mkdir(exist_ok=True)
+            new_dir = self.event_dir / plot_type
+            for date, plot in dates.items():
+                plot.savefig(new_dir / date)
