@@ -1,4 +1,4 @@
-from twitter_utils.twitter_utils import Loader, Processor, StaticPlotter
+from twitter_utils.twitter_utils import Loader, Processor, StaticPlotter, TemporalPlotter, Saver
 
 
 def main():
@@ -21,11 +21,23 @@ def main():
 
     print(by_date.keys())
 
-    splot = StaticPlotter(df)
+    splot = StaticPlotter()
 
-    basemap_plots = splot.plot_basemap()
+    # basemap_plots = splot.plot_basemap()
+    #
+    # print(basemap_plots)
 
-    print(basemap_plots)
+    tplot = TemporalPlotter()
+
+    basemaps = tplot.temporal_plotter(by_date)
+    basemaps = tplot.change_structure(basemaps)
+    print(basemaps.keys())
+
+    saver = Saver('/Users/jakegodsall/Google Drive/My Drive/Dev/twitter-floods/plots')
+
+    saver.create_event_directory('franklin')
+
+    saver.save_all_plots(basemaps)
 
 
 if __name__ == "__main__":
