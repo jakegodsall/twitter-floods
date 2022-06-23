@@ -132,6 +132,55 @@ class Processor:
 
         return df_by_date
 
+class Plotter():
+    def __init__(self):
+        ...
+
+    def plot_basemap(self, df, region='UK', size=5):
+        # creating a list of options for plots
+        density = ["normal", "density"]
+
+        # creating a dictionary for storing plots
+        plots = {}
+
+        # iterating through options
+        for option in density:
+
+            fig, ax = plt.subplots(figsize=(8, 8))
+
+            bbox = [0, 0, 0, 0]
+            if region == 'UK':
+                loc = 'upper right'
+                bbox = [-10.5, 49.5, 3.5, 59.5, 4.36, 54.7]
+            elif region == 'Australia':
+                loc = 'lower left'
+                bbox = [100.338953078, -43.6345972634, 153.569469029, -2.6681857235, 133.8807, -26.6980]
+
+            m = Basemap(llcrnrlon=bbox[0], llcrnrlat=bbox[1], urcrnrlon=bbox[2], urcrnrlat=bbox[3],
+                        resolution='i', projection='tmerc', lon_0=bbox[4], lat_0=bbox[5], ax=ax)
+            m.drawlsmask(land_color='#00883D', ocean_color='#23C7CD', lakes=True)
+            m.drawcoastlines(color='#012C00')
+            m.drawcountries(color='white')
+
+            s = [size, size]
+
+            if option == 'density':
+                s = [2 * df.counts * size]
+
+            colours = df.label.astype('category').cat.codes
+            scatter = m.scatter(df.longitude_to_use, df.latitude_to_use,
+                                latlon=True, alpha=1, s=s[0], c=colours)
+
+            plt.legend(handles=scatter.legend_elements()[0], title='Sentiment', labels=['Negative', 'Positive'])
+
+            plots[f'{option}'] = fig
+
+        return plots
+
+    def change_structure(self, plots_by_day):
+        k = list(plots_by_day.values())[0].keys()
+        return {inner: {outer: plots_by_day[outer][inner] for outer in plots_by_day} for inner in k}
+
 
 class StaticPlotter:
     def __init__(self):
@@ -140,7 +189,7 @@ class StaticPlotter:
     def show_options(self):
         ...
 
-    def plot_basemap(self, df, region='UK', size=10):
+    def plot_basemap(self, df, region='UK', size=5):
 
         # creating a list of options for plots
         density = ["normal", "density"]
