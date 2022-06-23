@@ -9,14 +9,30 @@ from mpl_toolkits.basemap import Basemap
 
 
 class Loader:
+    """
+        Used to load data from the Tweet object and the Places object
+        from the Twitter API.
+
+        Inputs:
+            tweet_dir (str) - absolute or relative path to the tweets_labelled.jsonl file
+            places_dir (str) - absolute or relative path to the places.jsonl file
+    """
     def __init__(self, tweet_dir, places_dir):
-        """Loads the tweet and places files."""
+        """Creates a number of useful Path objects for the class"""
         self.root_dir = Path("./")
         self.tweet_dir = Path(tweet_dir)
         self.places_dir = Path(places_dir)
 
     def load_df(self):
-        """Read the files into dataframes"""
+        """
+            Read the files into pandas data frames.
+
+            Inputs:
+                None
+            Outputs:
+                tweet_df (pandas.DataFrame)
+                places_df (pandas.DataFrame)
+        """
         tweet_df = pd.read_json(self.tweet_dir, lines=True)
         places_df = pd.read_json(self.places_dir, lines=True)
 
@@ -24,14 +40,31 @@ class Loader:
 
 
 class Processor:
+    """
+        Processes the data frame objects to extract useful
+        features and create new features for samples without
+        exact coordinate data.
+    """
     def __init__(self, tweets_df, places_df):
+        """
+            Inputs:
+                tweets_df (pandas.DataFrame)
+                places_df (pandas.DataFrame)
+        """
         self.tweets_df = tweets_df
         self.places_df = places_df
 
     def filter_geo(self):
+        """
+            Filter rows of the tweets_df dataframe
+            for those with any kind of geospatial information.
+        """
         self.tweets_df = self.tweets_df[self.tweets_df.geo.notnull()]
 
     def extract_coords(self):
+        """
+            Extract the coordinates from the geo feature.
+        """
         # extract dictionary in geo feature
         expanded_geo = self.tweets_df.geo.apply(lambda s: pd.Series(s))
         # concatenate the new df to the original df
@@ -46,18 +79,18 @@ class Processor:
 
         # flatten longitude and latitude
         lonlat = self.tweets_df.gt_coordinates.apply(lambda s: pd.Series(s))
-        # rename new features from dictionary
+        # rename new features from dictionary to gt for ground truth
         lonlat.columns = ['gt_longitude', 'gt_latitude']
         # concatenate the new df to the original df
         self.tweets_df = pd.concat([self.tweets_df, lonlat], axis=1)
 
-    def _get_centre(self, row):
+    def get_centre(self, row):
         """
             Calculates and returns the central coordinate for the bounding
             box
 
-            Args:
-                param1: row of the dataframe
+            Inputs:
+                row of the dataframe
 
             Returns:
                 central coordinates (list)
@@ -66,13 +99,17 @@ class Processor:
         return [(row[0] + row[2]) / 2, (row[1] + row[3]) / 2]
 
     def extract_bbox(self):
+        """
+            Extracts the bounding box from the places_df data frame and
+            concatenates the value to the tweets_df data frame.
+        """
         places_df = self.places_df[['id', 'geo']]
         places_df = pd.concat([places_df, places_df.geo.apply(lambda s: pd.Series(s))['bbox']], axis=1)
         places_df = places_df.drop('geo', axis=1)
         self.tweets_df = pd.merge(self.tweets_df, places_df,
                                   left_on='place_id',
                                   right_on='id')
-        self.tweets_df['bbox_centre'] = self.tweets_df.bbox.apply(self._get_centre)
+        self.tweets_df['bbox_centre'] = self.tweets_df.bbox.apply(self.get_centre)
         self.tweets_df['bbox_longitude'] = self.tweets_df.bbox_centre.apply(lambda s: s[0])
         self.tweets_df['bbox_latitude'] = self.tweets_df.bbox_centre.apply(lambda s: s[1])
 
@@ -92,17 +129,20 @@ class Processor:
 
     def add_coordinate_counts(self):
         """
-            FOR INTERNAL USE
-            Returns a nx4 dataframe with columns longitude, latitude, label
-            and counts for plotting
-            Here 'counts' is the number of times those coordinates appear in the sample
-            Returns:
-                augmented dataframe (pandas.DataFrame)
-
+            Adds a counts feature which represents the number of times samples
+            are found with the same coordinate (from taking the centre of the bounding box)
         """
         self.tweets_df['counts'] = self.tweets_df.groupby('longitude_to_use')['longitude_to_use'].transform('count')
 
     def extract_features(self):
+        """
+            Groups the Processor methods and returns a tweets_df dataframe
+            consisting of only those features which are used for geospatial
+            analysis.
+
+            Returns:
+                    tweets_df (pandas.DataFrame)
+        """
         self.filter_geo()
         self.extract_coords()
         self.extract_bbox()
@@ -115,6 +155,13 @@ class Processor:
                                       'counts']]
 
     def create_temporal(self):
+        """
+            Creates a dictionary of pandas.DataFrame's of the form
+                dy_by_date[date] = dataframe of samples where created_at == date
+
+            Returns:
+                df_by_date (dictionary)
+        """
 
         df = self.tweets_df.copy(deep=True)
 
@@ -133,11 +180,38 @@ class Processor:
         return df_by_date
 
 class Plotter():
-    def __init__(self, figsize=(8, 8)):
+    """
+        Abstract base class for plotting.
+    """
+    def __init__(self,
+                 figsize=(8, 8),
+                 land_color='#00883D',
+                 ocean_color='#23C7CD',
+                 coastline_color='#012C00',
+                 country_color='white'):
+        """
+            All parameters for styling basemap plots
+        """
         self.figsize = figsize
+        self.land_color = land_color
+        self.ocean_color = ocean_color
+        self.coastline_color = coastline_color
+        self.country_color = country_color
+
 
 
     def plot_basemap(self, df, region='UK', size=5):
+        """
+            Creates a basemap plot for a given Processor data frame.
+
+            Inputs:
+                df (pandas.DataFrame)
+                region (str) either 'UK' or 'Australia' for determining
+                    bounding box of the plot
+
+            Returns:
+                plots (dictionary) - a dictionary of basemap plots
+        """
         # creating a list of options for plots
         density = ["normal", "density"]
 
@@ -146,7 +220,6 @@ class Plotter():
 
         # iterating through options
         for option in density:
-
             fig, ax = plt.subplots(figsize=self.figsize)
 
             bbox = [0, 0, 0, 0]
@@ -159,9 +232,9 @@ class Plotter():
 
             m = Basemap(llcrnrlon=bbox[0], llcrnrlat=bbox[1], urcrnrlon=bbox[2], urcrnrlat=bbox[3],
                         resolution='i', projection='tmerc', lon_0=bbox[4], lat_0=bbox[5], ax=ax)
-            m.drawlsmask(land_color='#00883D', ocean_color='#23C7CD', lakes=True)
-            m.drawcoastlines(color='#012C00')
-            m.drawcountries(color='white')
+            m.drawlsmask(land_color=self.land_color, ocean_color=self.ocean_color, lakes=True)
+            m.drawcoastlines(color=self.coastline_color)
+            m.drawcountries(color=self.country_color)
 
             s = [size, size]
 
@@ -180,15 +253,32 @@ class Plotter():
 
 
 class StaticPlotter(Plotter):
-    def __init__(self, figsize=(8, 8)):
-        super().__init__(figsize)
+    """
+        Plotter class for plotting the static plot,
+        that is, where all points are plotted regardless of date.
+    """
+    def __init__(self,
+                 figsize=(8, 8),
+                 land_color='#00883D',
+                 ocean_color='#23C7CD',
+                 coastline_color='#012C00',
+                 country_color='white'):
+        super().__init__(figsize, land_color, ocean_color,
+                         coastline_color, country_color)
 
     def show_options(self):
         ...
 
+
 class TemporalPlotter(StaticPlotter):
-    def __init__(self, figsize=(8, 8)):
-        super().__init__(figsize)
+    def __init__(self,
+                 figsize=(8, 8),
+                 land_color='#00883D',
+                 ocean_color='#23C7CD',
+                 coastline_color='#012C00',
+                 country_color='white'):
+        super().__init__(figsize, land_color, ocean_color,
+                         coastline_color, country_color)
 
     def temporal_plotter(self, df_by_day):
         temporal_basemaps = {}
