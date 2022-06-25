@@ -153,6 +153,7 @@ class Processor:
         return self.tweets_df.loc[:, ['created_at', 'label',
                                       'longitude_to_use',
                                       'latitude_to_use',
+                                      'has_coords',
                                       'counts']]
 
     def create_temporal(self):
@@ -314,8 +315,9 @@ class MetaData:
         meta = {
             "Total tweets": tweets_df.shape[0],
             "Total tweets with geo": extracted_df.shape[0],
+            "Total tweets with precise geo": extracted_df[extracted_df.has_coords].shape[0],
             "Positive tweets with geo": extracted_df[extracted_df.label == 'positive'].shape[0],
-            "Negative tweets with geo": extracted_df[extracted_df.label == 'negative'].shape[0]
+            "Negative tweets with geo": extracted_df[extracted_df.label == 'negative'].shape[0],
         }
 
         return meta
@@ -352,6 +354,7 @@ class TemporalSaver(Saver):
             new_dir = self.event_dir / plot_type
             for date, plot in dates.items():
                 plot.savefig(new_dir / date)
+
 
 class MetaSaver(Saver):
     def __init__(self, plots_dir, event_name):
