@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import datetime
+import json
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
@@ -271,9 +272,10 @@ class StaticPlotter(Plotter):
 
     def plot_frequency(self, df_by_day):
         freq_by_date = {date: df.shape[0] for date, df in df_by_day.items()}
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(4, 4))
         ax.plot(freq_by_date.keys(), freq_by_date.values())
         ax.set_xlabel("Date")
+        dates = [l.set_visible(False) for (i, l) in enumerate(ax.xaxis.get_ticklabels()) if i % 2 != 0]
         ax.set_xticklabels(freq_by_date.keys(), rotation=45)
         ax.set_ylabel("Number of tweets")
 
@@ -301,6 +303,22 @@ class TemporalPlotter(Plotter):
         k = list(plots_by_day.values())[0].keys()
         return {inner: {outer: plots_by_day[outer][inner] for outer in plots_by_day} for inner in k}
 
+
+class MetaData:
+    def __init__(self):
+        pass
+
+    def generate_json(self, tweets_df, places_df):
+        p = Processor(tweets_df, places_df)
+        extracted_df = p.extract_features()
+        meta = {
+            "Total tweets": tweets_df.shape[0],
+            "Total tweets with geo": extracted_df.shape[0],
+            "Positive tweets with geo": extracted_df[extracted_df.label == 'positive'].shape[0],
+            "Negative tweets with geo": extracted_df[extracted_df.label == 'negative'].shape[0]
+        }
+
+        return meta
 
 class Saver:
     def __init__(self, plots_dir, event_name):
@@ -334,3 +352,11 @@ class TemporalSaver(Saver):
             new_dir = self.event_dir / plot_type
             for date, plot in dates.items():
                 plot.savefig(new_dir / date)
+
+class MetaSaver(Saver):
+    def __init__(self, plots_dir, event_name):
+        super().__init__(plots_dir, event_name)
+
+    def save_meta(self, meta_json):
+        with open(self.event_dir / "meta.json", "w") as json_file:
+            json.dump(meta_json, json_file)
