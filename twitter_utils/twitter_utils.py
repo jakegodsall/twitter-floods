@@ -269,8 +269,18 @@ class StaticPlotter(Plotter):
     def show_options(self):
         ...
 
+    def plot_frequency(self, df_by_day):
+        freq_by_date = {date: df.shape[0] for date, df in df_by_day.items()}
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(freq_by_date.keys(), freq_by_date.values())
+        ax.set_xlabel("Date")
+        ax.set_xticklabels(freq_by_date.keys(), rotation=45)
+        ax.set_ylabel("Number of tweets")
 
-class TemporalPlotter(StaticPlotter):
+        return {"freq_plot": fig}
+
+
+class TemporalPlotter(Plotter):
     def __init__(self,
                  figsize=(8, 8),
                  land_color='#00883D',
@@ -312,8 +322,7 @@ class StaticSaver(Saver):
         for plot_type, plot in plots.items():
             (self.event_dir / plot_type).mkdir(exist_ok=True)
             new_dir = self.event_dir / plot_type
-            plot.savefig(new_dir / self.event_name)
-
+            plot.savefig(new_dir / self.event_name, bbox_inches="tight")
 
 class TemporalSaver(Saver):
     def __init__(self, plots_dir, event_name):
