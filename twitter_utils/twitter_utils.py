@@ -8,6 +8,7 @@ import json
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 
+from textwrap import dedent
 
 class Loader:
     """
@@ -306,21 +307,32 @@ class TemporalPlotter(Plotter):
 
 
 class MetaData:
-    def __init__(self):
-        pass
+    def __init__(self, tweets_df, places_df):
+        extracted_df = Processor(tweets_df, places_df).extract_features()
 
-    def generate_json(self, tweets_df, places_df):
-        p = Processor(tweets_df, places_df)
-        extracted_df = p.extract_features()
+        self.total_tweets = tweets_df.shape[0]
+        self.total_tweets_with_geo = extracted_df.shape[0]
+        self.total_tweets_precise_geo = extracted_df[extracted_df.has_coords].shape[0]
+        self.positive_with_geo = extracted_df[extracted_df.label == 'positive'].shape[0]
+        self.negative_with_geo = extracted_df[extracted_df.label == 'negative'].shape[0]
+
+    def generate_json(self):
         meta = {
-            "Total tweets": tweets_df.shape[0],
-            "Total tweets with geo": extracted_df.shape[0],
-            "Total tweets with precise geo": extracted_df[extracted_df.has_coords].shape[0],
-            "Positive tweets with geo": extracted_df[extracted_df.label == 'positive'].shape[0],
-            "Negative tweets with geo": extracted_df[extracted_df.label == 'negative'].shape[0],
+            "Total tweets": self.total_tweets,
+            "Total tweets with geo": self.total_tweets_with_geo,
+            "Total tweets with precise geo": self.total_tweets_precise_geo,
+            "Positive tweets with geo": self.positive_with_geo,
+            "Negative tweets with geo": self.negative_with_geo,
         }
 
         return meta
+
+    def generate_for_gui(self):
+        return dedent(f"""Total tweets: {self.total_tweets}
+        Number of tweets with geo-info: {self.total_tweets_with_geo}
+        Number of tweets with precise geo-info: {self.total_tweets_precise_geo}
+        Number of positive tweets (geo): {self.positive_with_geo}
+        Number of negative tweets (geo): {self.negative_with_geo}""")
 
 class Saver:
     def __init__(self, plots_dir, event_name):
