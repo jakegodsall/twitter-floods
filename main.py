@@ -55,6 +55,7 @@
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 
 
 class DataFrame(ttk.Frame):
@@ -64,13 +65,13 @@ class DataFrame(ttk.Frame):
         self.data_label = ttk.Label(self, text="Add Data:")
 
         self.labelled_tweets_label = ttk.Label(self, text="Labelled-Tweets: ")
-        self.labelled_tweets_button = ttk.Button(self, text="Browse")
+        self.labelled_tweets_button = ttk.Button(self, text="Browse", command=self.load_labelled)
 
         self.places_label = ttk.Label(self, text="Places: ")
-        self.places_button = ttk.Button(self, text="Browse")
+        self.places_button = ttk.Button(self, text="Browse", command=self.load_places)
 
         self.plots_label = ttk.Label(self, text="Plots Path: ")
-        self.plots_button = ttk.Button(self, text="Browse")
+        self.plots_button = ttk.Button(self, text="Browse", command=self.ask_dir)
 
         self.submit_button = ttk.Button(self, text="Submit")
 
@@ -83,6 +84,16 @@ class DataFrame(ttk.Frame):
         self.plots_label.grid(row=3, column=0)
         self.plots_button.grid(row=3, column=1)
         self.submit_button.grid(row=4, column=0, columnspan=2, pady=10)
+
+    def load_labelled(self):
+        global tweet_dir
+        tweet_dir = filedialog.askopenfilename(initialdir="/home/jake/Documents/twitter-floods-root/twitter-floods/data/StormFranklin")
+
+    def load_places(self):
+        ...
+
+    def ask_dir(self):
+        ...
 
 
 class MetaFrame(ttk.Frame):
@@ -155,6 +166,13 @@ class MainWindow(tk.Tk):
 
 def main():
     root = MainWindow()
+
+    tweets_dir = tk.StringVar()
+    places_dir = tk.StringVar()
+    save_dir = tk.StringVar()
+
+    print(tweet_dir)
+
     root.mainloop()
 
 
