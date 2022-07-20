@@ -56,95 +56,60 @@
 import tkinter as tk
 from tkinter import ttk
 
-from tkinter import filedialog
 
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk
-)
-from matplotlib.backend_bases import key_press_handler
+class MainWindow:
+    def __init__(self, main):
+        self.main = main
+        self.main.title("Twitter Floods")
+        # frames and components
+        self.options_frame = tk.Frame(self.main, bg="red")
 
-def browse_labelled_tweets():
-    filename = filedialog.askopenfilename(initialdir="./data/StormFranklin/",
-                                          title="Select file",
-                                          filetypes=(("JSON Lines",
-                                                     "*.jsonl"),
-                                                     ("All files",
-                                                      "*.*")))
+        self.data_frame = tk.Frame(self.options_frame)
 
-    just_file = filename.split("/")[-1]
-    labelled_tweets_dir_browse["text"] = just_file
+        self.data_label = ttk.Label(self.data_frame, text="Add Data:")
 
-def browse_places():
-    filename = filedialog.askopenfilename(initialdir="./data/StormFranklin/",
-                                          title="Select file",
-                                          filetypes=(("JSON Lines",
-                                                      "*.jsonl"),
-                                                     ("All files",
-                                                      "*.*")))
+        self.labelled_tweets_label = ttk.Label(self.data_frame, text="Labelled-Tweets: ")
+        self.labelled_tweets_button = ttk.Button(self.data_frame, text="Browse")
 
-    just_file = filename.split("/")[-1]
-    places_dir_browse["text"] = just_file
+        self.places_label = ttk.Label(self.data_frame, text="Places: ")
+        self.places_button = ttk.Button(self.data_frame, text="Browse")
 
-def browse_plots():
-    filename = filedialog.askdirectory(initialdir="./plots",
-                                       title="Select directory")
+        self.plots_label = ttk.Label(self.data_frame, text="Plots Path: ")
+        self.plots_button = ttk.Button(self.data_frame, text="Browse")
 
-    just_file = filename.split("/")[-1]
-    save_dir_browse["text"] = just_file
+        self.submit_button = ttk.Button(self.data_frame, text="Submit")
 
-window = tk.Tk()
-window.geometry("1000x600")
-window.resizable(False, False)
+        self.meta_frame = tk.Frame(self.options_frame)
+        self.save_frame = tk.Frame(self.options_frame)
 
-# Frames for separating columns
+        self.plot_frame = tk.Frame(self.main, bg="green")
 
-options_frame = ttk.Frame(window, padding=(10, 20))
-options_frame.grid(row=0, column=0)
+        # main layout
+        self.options_frame.grid(row=0, column=0)
+        self.plot_frame.grid(row=0, column=1)
 
-main_separator = ttk.Separator(window, orient="horizontal")
-main_separator.grid(row=0, column=1)
+        # options layout
+        self.data_frame.grid(row=0, column=0)
+        self.meta_frame.grid(row=1, column=0)
+        self.save_frame.grid(row=2, column=0)
 
-plot_frame = ttk.Frame(window, padding=(10, 20))
-plot_frame.grid(row=0, column=2)
+        # data frame layout
+        self.data_label.grid(row=0, column=0, columnspan=2)
+        self.labelled_tweets_label.grid(row=1, column=0)
+        self.labelled_tweets_button.grid(row=1, column=1)
+        self.places_label.grid(row=2, column=0)
+        self.places_button.grid(row=2, column=1)
+        self.plots_label.grid(row=3, column=0)
+        self.plots_button.grid(row=3, column=1)
+        self.submit_button.grid(row=4, column=0, columnspan=2)
 
-# Filling the option frame
-
-ttk.Label(options_frame, text="Directories: ").grid(row=0, column=0)
-
-# directories frame
-dir_frame = ttk.Frame(options_frame, padding=(10, 20))
-dir_frame.grid(row=0, column=0)
-
-# labelled tweets
-ttk.Label(dir_frame, text="Labelled Tweets: ").grid(row=1, column=0)
-labelled_tweets_dir_browse = ttk.Button(dir_frame, command=browse_labelled_tweets)
-labelled_tweets_dir_browse.grid(row=1, column=2)
-
-# places
-ttk.Label(dir_frame, text="Places: ").grid(row=2, column=0)
-places_dir_browse = ttk.Button(dir_frame, command=browse_places)
-places_dir_browse.grid(row=2, column=2)
-
-# plots
-ttk.Label(dir_frame, text="Save: ").grid(row=3, column=0)
-save_dir_browse = ttk.Button(dir_frame, command=browse_plots)
-save_dir_browse.grid(row=3, column=2)
-
-ttk.Separator(options_frame, orient="horizontal").grid(row=4, ipadx=200, ipady=10)
-
-### Meta information
-
-meta_frame = ttk.Frame(options_frame)
-meta_frame.grid(row=1, column=0)
+def main():
+    root = tk.Tk()
+    root.geometry("800x600")
+    root.resizable(False, False)
+    MainWindow(root)
+    root.mainloop()
 
 
-ttk.Separator(options_frame, orient="horizontal").grid(row=4, ipadx=200, ipady=10)
-
-ttk.Separator(window, orient="vertical").grid(column=2, ipadx=200, ipady=10)
-
-## Plotting frame
-
-
-
-
-window.mainloop()
+if __name__ == '__main__':
+    main()
