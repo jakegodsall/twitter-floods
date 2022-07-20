@@ -58,6 +58,11 @@ from tkinter import ttk
 
 from tkinter import filedialog
 
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk
+)
+from matplotlib.backend_bases import key_press_handler
+
 def browse_labelled_tweets():
     filename = filedialog.askopenfilename(initialdir="./data/StormFranklin/",
                                           title="Select file",
@@ -134,6 +139,12 @@ meta_frame.grid(row=1, column=0)
 
 
 ttk.Separator(options_frame, orient="horizontal").grid(row=4, ipadx=200, ipady=10)
+
+ttk.Separator(window, orient="vertical").grid(column=2, ipadx=200, ipady=10)
+
+## Plotting frame
+
+
 
 
 window.mainloop()
