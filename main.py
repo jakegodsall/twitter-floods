@@ -59,20 +59,20 @@ from tkinter import ttk
 
 class DataFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(main, *args, **kwargs)
         # data frame elements
-        self.data_label = ttk.Label(main, text="Add Data:")
+        self.data_label = ttk.Label(self, text="Add Data:")
 
-        self.labelled_tweets_label = ttk.Label(main, text="Labelled-Tweets: ")
-        self.labelled_tweets_button = ttk.Button(main, text="Browse")
+        self.labelled_tweets_label = ttk.Label(self, text="Labelled-Tweets: ")
+        self.labelled_tweets_button = ttk.Button(self, text="Browse")
 
-        self.places_label = ttk.Label(main, text="Places: ")
-        self.places_button = ttk.Button(main, text="Browse")
+        self.places_label = ttk.Label(self, text="Places: ")
+        self.places_button = ttk.Button(self, text="Browse")
 
-        self.plots_label = ttk.Label(main, text="Plots Path: ")
-        self.plots_button = ttk.Button(main, text="Browse")
+        self.plots_label = ttk.Label(self, text="Plots Path: ")
+        self.plots_button = ttk.Button(self, text="Browse")
 
-        self.submit_button = ttk.Button(main, text="Submit")
+        self.submit_button = ttk.Button(self, text="Submit")
 
         # data frame layout
         self.data_label.grid(row=0, column=0, columnspan=2)
@@ -89,8 +89,8 @@ class MetaFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # meta frame components
-        self.meta_label = ttk.Label(main, text="Tweet Metadata")
-        self.meta_textbox = ttk.Entry(main)
+        self.meta_label = ttk.Label(self, text="Tweet Metadata")
+        self.meta_textbox = ttk.Entry(self)
 
         # meta frame layout
         self.meta_label.grid(row=0, column=0)
@@ -98,39 +98,40 @@ class MetaFrame(ttk.Frame):
 
 class SaveFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(main, *args, **kwargs)
         # save frame components
-        self.plot_button = ttk.Button(main, text="Plot")
-        self.save_button = ttk.Button(main, text="Save")
+        self.plot_button = ttk.Button(self, text="Plot")
+        self.save_button = ttk.Button(self, text="Save")
 
         # save frame layout
         self.plot_button.grid(row=0, column=0)
         self.save_button.grid(row=1, column=0)
 
+class OptionsFrame(ttk.Frame):
+    def __init__(self, main, *args, **kwargs):
+        super().__init__(main, *args, **kwargs)
+        # options frame components
+        self.data_frame = DataFrame(self)
+        self.meta_frame = MetaFrame(self)
+        self.save_frame = SaveFrame(self)
+
+        # options frame layout
+        self.data_frame.grid(row=0, column=0)
+        self.meta_frame.grid(row=1, column=0)
+        self.save_frame.grid(row=2, column=0)
 
 class MainWindow:
     def __init__(self, main):
         self.main = main
         self.main.title("Twitter Floods")
         # frames and components
-        self.options_frame = ttk.Frame(self.main)
-
-        self.data_frame = DataFrame(self.options_frame)
-
-        self.meta_frame = MetaFrame(self.options_frame)
-
-        self.save_frame = tk.Frame(self.options_frame)
-
+        self.options_frame = OptionsFrame(self.main)
         self.plot_frame = tk.Frame(self.main, bg="green")
 
         # main layout
         self.options_frame.grid(row=0, column=0)
         self.plot_frame.grid(row=0, column=1)
 
-        # options layout
-        self.data_frame.grid(row=0, column=0)
-        self.meta_frame.grid(row=1, column=0)
-        self.save_frame.grid(row=2, column=0)
 
 
 
