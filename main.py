@@ -57,29 +57,68 @@ import tkinter as tk
 from tkinter import ttk
 
 
+class DataFrame(ttk.Frame):
+    def __init__(self, main, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # data frame elements
+        self.data_label = ttk.Label(main, text="Add Data:")
+
+        self.labelled_tweets_label = ttk.Label(main, text="Labelled-Tweets: ")
+        self.labelled_tweets_button = ttk.Button(main, text="Browse")
+
+        self.places_label = ttk.Label(main, text="Places: ")
+        self.places_button = ttk.Button(main, text="Browse")
+
+        self.plots_label = ttk.Label(main, text="Plots Path: ")
+        self.plots_button = ttk.Button(main, text="Browse")
+
+        self.submit_button = ttk.Button(main, text="Submit")
+
+        # data frame layout
+        self.data_label.grid(row=0, column=0, columnspan=2)
+        self.labelled_tweets_label.grid(row=1, column=0)
+        self.labelled_tweets_button.grid(row=1, column=1)
+        self.places_label.grid(row=2, column=0)
+        self.places_button.grid(row=2, column=1)
+        self.plots_label.grid(row=3, column=0)
+        self.plots_button.grid(row=3, column=1)
+        self.submit_button.grid(row=4, column=0, columnspan=2)
+
+
+class MetaFrame(ttk.Frame):
+    def __init__(self, main, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # meta frame components
+        self.meta_label = ttk.Label(main, text="Tweet Metadata")
+        self.meta_textbox = ttk.Entry(main)
+
+        # meta frame layout
+        self.meta_label.grid(row=0, column=0)
+        self.meta_textbox.grid(row=1, column=0)
+
+class SaveFrame(ttk.Frame):
+    def __init__(self, main, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # save frame components
+        self.plot_button = ttk.Button(main, text="Plot")
+        self.save_button = ttk.Button(main, text="Save")
+
+        # save frame layout
+        self.plot_button.grid(row=0, column=0)
+        self.save_button.grid(row=1, column=0)
+
+
 class MainWindow:
     def __init__(self, main):
         self.main = main
         self.main.title("Twitter Floods")
         # frames and components
-        self.options_frame = tk.Frame(self.main, bg="red")
+        self.options_frame = ttk.Frame(self.main)
 
-        self.data_frame = tk.Frame(self.options_frame)
+        self.data_frame = DataFrame(self.options_frame)
 
-        self.data_label = ttk.Label(self.data_frame, text="Add Data:")
+        self.meta_frame = MetaFrame(self.options_frame)
 
-        self.labelled_tweets_label = ttk.Label(self.data_frame, text="Labelled-Tweets: ")
-        self.labelled_tweets_button = ttk.Button(self.data_frame, text="Browse")
-
-        self.places_label = ttk.Label(self.data_frame, text="Places: ")
-        self.places_button = ttk.Button(self.data_frame, text="Browse")
-
-        self.plots_label = ttk.Label(self.data_frame, text="Plots Path: ")
-        self.plots_button = ttk.Button(self.data_frame, text="Browse")
-
-        self.submit_button = ttk.Button(self.data_frame, text="Submit")
-
-        self.meta_frame = tk.Frame(self.options_frame)
         self.save_frame = tk.Frame(self.options_frame)
 
         self.plot_frame = tk.Frame(self.main, bg="green")
@@ -93,15 +132,7 @@ class MainWindow:
         self.meta_frame.grid(row=1, column=0)
         self.save_frame.grid(row=2, column=0)
 
-        # data frame layout
-        self.data_label.grid(row=0, column=0, columnspan=2)
-        self.labelled_tweets_label.grid(row=1, column=0)
-        self.labelled_tweets_button.grid(row=1, column=1)
-        self.places_label.grid(row=2, column=0)
-        self.places_button.grid(row=2, column=1)
-        self.plots_label.grid(row=3, column=0)
-        self.plots_button.grid(row=3, column=1)
-        self.submit_button.grid(row=4, column=0, columnspan=2)
+
 
 def main():
     root = tk.Tk()
