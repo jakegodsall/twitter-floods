@@ -10,6 +10,7 @@ from mpl_toolkits.basemap import Basemap
 
 from textwrap import dedent
 
+
 class Loader:
     """
         Used to load data from the Tweet object and the Places object
@@ -187,7 +188,6 @@ class Plotter():
         Abstract base class for plotting.
     """
     def __init__(self,
-                 figsize=(8, 8),
                  land_color='#00883D',
                  ocean_color='#23C7CD',
                  coastline_color='#012C00',
@@ -195,7 +195,6 @@ class Plotter():
         """
             All parameters for styling basemap plots
         """
-        self.figsize = figsize
         self.land_color = land_color
         self.ocean_color = ocean_color
         self.coastline_color = coastline_color
@@ -223,7 +222,7 @@ class Plotter():
 
         # iterating through options
         for option in density:
-            fig, ax = plt.subplots(figsize=self.figsize)
+            fig, ax = plt.subplots()
 
             bbox = [0, 0, 0, 0]
             if region == 'UK':
@@ -261,12 +260,11 @@ class StaticPlotter(Plotter):
         that is, where all points are plotted regardless of date.
     """
     def __init__(self,
-                 figsize=(8, 8),
                  land_color='#00883D',
                  ocean_color='#23C7CD',
                  coastline_color='#012C00',
                  country_color='white'):
-        super().__init__(figsize, land_color, ocean_color,
+        super().__init__(land_color, ocean_color,
                          coastline_color, country_color)
 
     def show_options(self):
@@ -286,12 +284,11 @@ class StaticPlotter(Plotter):
 
 class TemporalPlotter(Plotter):
     def __init__(self,
-                 figsize=(8, 8),
                  land_color='#00883D',
                  ocean_color='#23C7CD',
                  coastline_color='#012C00',
                  country_color='white'):
-        super().__init__(figsize, land_color, ocean_color,
+        super().__init__(land_color, ocean_color,
                          coastline_color, country_color)
 
     def temporal_plotter(self, df_by_day):
@@ -329,10 +326,10 @@ class MetaData:
 
     def generate_for_gui(self):
         return dedent(f"""Total tweets: {self.total_tweets}
-        Number of tweets with geo-info: {self.total_tweets_with_geo}
-        Number of tweets with precise geo-info: {self.total_tweets_precise_geo}
-        Number of positive tweets (geo): {self.positive_with_geo}
-        Number of negative tweets (geo): {self.negative_with_geo}""")
+Number of tweets with geo-info: {self.total_tweets_with_geo}
+Number of tweets with precise geo-info: {self.total_tweets_precise_geo}
+Number of positive tweets (geo): {self.positive_with_geo}
+Number of negative tweets (geo): {self.negative_with_geo}""")
 
 class Saver:
     def __init__(self, plots_dir, event_name):
