@@ -53,10 +53,17 @@
 # if __name__ == "__main__":
 #     main()
 
+# gui
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
+# plotting
+import numpy as np
+import matplotlib as mpl
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
 
 class DataFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
@@ -135,7 +142,6 @@ class MetaFrame(ttk.Frame):
         self.meta_label.grid(row=0, column=0)
         self.meta_textbox.grid(row=1, column=0)
 
-
     def show_meta(self):
         if self.main.data_frame.data_loaded:
             self.meta_content.set("TESTING")
@@ -144,18 +150,23 @@ class MetaFrame(ttk.Frame):
 class SaveFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
         super().__init__(main, *args, **kwargs)
+        self.main = main
         # save frame components
-        self.plot_button = ttk.Button(self, text="Plot")
+        self.plot_button = ttk.Button(self, text="Plot", command=self.plot)
         self.save_button = ttk.Button(self, text="Save")
 
         # save frame layout
         self.plot_button.grid(row=0, column=0)
         self.save_button.grid(row=0, column=1)
 
+    def plot(self):
+        print(self.main.main)
+
 
 class OptionsFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
         super().__init__(main, *args, **kwargs)
+        self.main = main
         # options frame components
         self.data_frame = DataFrame(self)
         self.horiz1 = ttk.Separator(self, orient="horizontal")
@@ -174,7 +185,18 @@ class OptionsFrame(ttk.Frame):
 class PlotFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
         super().__init__(main, *args, **kwargs)
+        self.main = main
 
+        self.plot()
+
+    def plot(self):
+        fig = Figure(figsize=(5, 4))
+        t = np.arange(0, 3, .01)
+        fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+
+        canvas = FigureCanvasTkAgg(fig, master=self)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=0, padx=30, pady=30)
 
 class MainWindow(tk.Tk):
     def __init__(self, *args, **kwargs):
