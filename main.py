@@ -61,6 +61,7 @@ from tkinter import filedialog
 class DataFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
         super().__init__(main, *args, **kwargs)
+        self.main = main
         # paths
         self.data_loaded = False
         self.tweets_dir = None
@@ -111,6 +112,7 @@ class DataFrame(ttk.Frame):
         if all(i is not None for i in dirs):
             self.confirmation_label["text"] = "Files Added"
             self.data_loaded = True
+            self.main.meta_frame.show_meta()
         else:
             self.confirmation_label["text"] = "Files Missing"
             return False
@@ -119,13 +121,24 @@ class DataFrame(ttk.Frame):
 class MetaFrame(ttk.Frame):
     def __init__(self, main, *args, **kwargs):
         super().__init__(main, *args, **kwargs)
+        self.main = main
+
+        # meta text content
+        self.meta_content = tk.StringVar()
+
         # meta frame components
         self.meta_label = ttk.Label(self, text="Tweet Metadata")
-        self.meta_textbox = ttk.Entry(self)
+        self.meta_textbox = ttk.Label(self, textvariable=self.meta_content)
+        self.meta_textbox.config(state='disabled')
 
         # meta frame layout
         self.meta_label.grid(row=0, column=0)
         self.meta_textbox.grid(row=1, column=0)
+
+
+    def show_meta(self):
+        if self.main.data_frame.data_loaded:
+            self.meta_content.set("TESTING")
 
 
 class SaveFrame(ttk.Frame):
@@ -184,7 +197,7 @@ class MainWindow(tk.Tk):
         self.vert.grid(row=0, column=1, sticky="ns")
         self.plot_frame.grid(row=0, column=2)
 
-def main():
+def main_loop():
     root = MainWindow()
 
     tweets_dir = None
@@ -211,4 +224,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main_loop()
