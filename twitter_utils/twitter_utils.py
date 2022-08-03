@@ -283,15 +283,27 @@ class StaticPlotter(Plotter):
 
 
 class TemporalPlotter(Plotter):
+    """
+        Plotter class for plotting the basemap plots
+        for each day where num of tweets > 0 and
+        earliest_tweet_day < day < latest_tweet_day
+    """
     def __init__(self,
                  land_color='#00883D',
                  ocean_color='#23C7CD',
                  coastline_color='#012C00',
                  country_color='white'):
+        # super the Plotter base class
         super().__init__(land_color, ocean_color,
                          coastline_color, country_color)
 
     def temporal_plotter(self, df_by_day):
+        """
+            Makes a plot for each plot in df_by_day
+            using Plotter.plot_basemap() and stores in
+            a dictionary called temporal_basemaps with the form
+            {date: basemap}
+        """
         temporal_basemaps = {}
         for k, v in df_by_day.items():
             if v.shape[0] > 0:
@@ -299,11 +311,20 @@ class TemporalPlotter(Plotter):
         return temporal_basemaps
 
     def change_structure(self, plots_by_day):
+        """
+            Restructure the plots_by_day dictionary
+            for easier saving of plots using the Saver classes.
+        """
         k = list(plots_by_day.values())[0].keys()
         return {inner: {outer: plots_by_day[outer][inner] for outer in plots_by_day} for inner in k}
 
 
 class MetaData:
+    """
+        The MetaData class is used to generate data about the
+        dataset, both in JSON for saving to disk and as a multiline string
+        for rendering into the GUI.
+    """
     def __init__(self, tweets_df, places_df):
         extracted_df = Processor(tweets_df, places_df).extract_features()
 
@@ -314,6 +335,9 @@ class MetaData:
         self.negative_with_geo = extracted_df[extracted_df.label == 'negative'].shape[0]
 
     def generate_json(self):
+        """
+            Generate the JSON of data set metadata.
+        """
         meta = {
             "Total tweets": self.total_tweets,
             "Total tweets with geo": self.total_tweets_with_geo,
@@ -325,6 +349,9 @@ class MetaData:
         return meta
 
     def generate_for_gui(self):
+        """
+            Generate the multiline string of data set metadata.
+        """
         return dedent(f"""Total tweets: {self.total_tweets}
 Number of tweets with geo-info: {self.total_tweets_with_geo}
 Number of tweets with precise geo-info: {self.total_tweets_precise_geo}
@@ -332,32 +359,61 @@ Number of positive tweets (geo): {self.positive_with_geo}
 Number of negative tweets (geo): {self.negative_with_geo}""")
 
 class Saver:
+    """
+        The Saver class is an abstract base class
+        which is inherited by StaticSaver, TemporalSaver and
+        MetaSaver.
+        Its purpose is to create a directory for the event in question.
+    """
     def __init__(self, plots_dir, event_name):
         self.plots_dir = Path(plots_dir)
         self.event_name = event_name
         self.event_dir = None
 
     def create_event_directory(self):
+        """
+            Create the event directory.
+        """
         (self.plots_dir / self.event_name).mkdir(exist_ok=True)
         self.event_dir = self.plots_dir / self.event_name
         print(self.event_dir)
 
 
 class StaticSaver(Saver):
+    """
+        The StaticSaver class inherits from the Saver class and is used to
+        save the static plots where data points for all dates are plotted on the same plot.
+    """
     def __init__(self, plots_dir, event_name):
         super().__init__(plots_dir, event_name)
 
     def save_plots(self, plots):
+        """
+            Takes the plot as input and saves
+            all plots to the event location specified by plots_dir
+            and event_name when the class is instantiated.
+        """
         for plot_type, plot in plots.items():
             (self.event_dir / plot_type).mkdir(exist_ok=True)
             new_dir = self.event_dir / plot_type
             plot.savefig(new_dir / self.event_name, bbox_inches="tight")
 
+
 class TemporalSaver(Saver):
+    """
+        The TemporalSaver class inherits from the Saver class
+        and is used to save the individual day plots
+        stored in a dictionary.
+    """
     def __init__(self, plots_dir, event_name):
         super().__init__(plots_dir, event_name)
 
     def save_all_plots(self, plots):
+        """
+            Takes the dictionary of plots as input and saves
+            all plots to the event location specified by plots_dir
+            and event_name when the class is instantiated.
+        """
         for plot_type, dates in plots.items():
             (self.event_dir / plot_type).mkdir(exist_ok=True)
             new_dir = self.event_dir / plot_type
@@ -366,9 +422,19 @@ class TemporalSaver(Saver):
 
 
 class MetaSaver(Saver):
+    """
+        The MetaSaver class inherits from the Saver class
+        and is used to save the MetaData generated by the
+        MetaData class.
+    """
     def __init__(self, plots_dir, event_name):
         super().__init__(plots_dir, event_name)
 
     def save_meta(self, meta_json):
+        """
+            Save the meta_json to disk at the location specified
+            by plots_dir and event_name during instantiation of the
+            class.
+        """
         with open(self.event_dir / "meta.json", "w") as json_file:
             json.dump(meta_json, json_file)
