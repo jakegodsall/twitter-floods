@@ -138,7 +138,6 @@ class SaveFrame(ttk.Frame):
         self.temporal_plots = None  # dictionary of temporal plots
         self.meta_json = None  # variable for meta data JSON
 
-
         # save frame components
         self.plot_button = ttk.Button(self, text="Plot", command=self.plot)
         self.save_button = ttk.Button(self, text="Save", command=self.save)
